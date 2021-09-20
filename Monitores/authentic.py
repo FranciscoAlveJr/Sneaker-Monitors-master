@@ -6,6 +6,7 @@ from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -18,7 +19,10 @@ green = '32768'
 estoque = []
 esgotados = []
 
-def index(proxy):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
     def monitor_post(color):
         data = {
             'username': 'Autentic Feet Monitor',
@@ -50,7 +54,7 @@ def index(proxy):
     url = 'https://www.authenticfeet.com.br/193?map=productClusterIds&O=OrderByReleaseDateDESC&PS=96'
     header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 
-    webhook = 'https://discord.com/api/webhooks/875540367045435442/6MniCrlx7zTtj3kct9qwZo9vGBWaXwT3cwCH_lhuw0gzBqF2OAtbTHe0keEabePTT8JA'
+    webhook = ''
 
     try:
         source = rq.get(url, headers=header, proxies=proxy)

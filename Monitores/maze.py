@@ -6,6 +6,7 @@ from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -15,8 +16,7 @@ user_agent_rotator = UserAgent(
 red = '16711680'
 green = '32768'
 
-c_url = 'https://www.maze.com.br/categoria/'
-categorias = ['tenis', 'roupas', 'acessorios', 'skate']
+url = 'https://www.maze.com.br/categoria/tenis'
 url_p = 'https://www.maze.com.br'
 
 header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
@@ -24,8 +24,11 @@ header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 estoque = []
 esgotados = []
 
-def index(proxy):
-    def monitor_post(color=green):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
+    def monitor_post(color):
 
         data = {
             'username': 'Maze Monitor',
@@ -38,6 +41,7 @@ def index(proxy):
                 'color': color,
                 'timestamp': str(datetime.utcnow()),
                 'fields': [
+                    {'name': 'Tamanho:', 'value': tamanho},
                     {'name': 'Preço', 'value': preco},
                 ]
             }]
@@ -53,60 +57,80 @@ def index(proxy):
             print(
                 f"Payload delivered successfully, code {result.status_code}.")
 
-    urls = []
-    webhook = 'https://discord.com/api/webhooks/875540062241173596/80eTQu4MVAO1pV9Am53Mls3g7236OxuJAwcGRop17JzOcT9vyheA8-WlDimfIAeC9nPw'
+    webhook = ''
     try:
         if estoque == []:   
-            for c in categorias:
-                url = c_url+c
-                response = rq.get(url, headers=header, proxies=proxy)
-                soup = BeautifulSoup(response.text, 'html.parser')
-
-                info = soup.find_all('div', class_='dados')
-                links = soup.find_all('a', class_='ui image fluid attached')
-                imagens = soup.find_all('img', class_='visible content')
-                
-                for i in range(len(links)):
-                    estoque.append(links[i]['href'])
-        
-        for c in categorias:
-            url = c_url+c
             response = rq.get(url, headers=header, proxies=proxy)
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            info = soup.find_all('div', class_='dados')
             links = soup.find_all('a', class_='ui image fluid attached')
-            imagens = soup.find_all('img', class_='visible content')
-
+            
             for i in range(len(links)):
-                urls.append(links[i]['href'])
+                link_p = links[i]['href']
+                url_pro = url_p+link_p
 
-            for i in range(len(info)):
-                try:
-                    nome = str(info[i].find('h3').getText()).strip()
-                    preco = str(info[i].find('span', class_='preco').text).strip()
-                    image = imagens[i]['data-src']
-                    d = str(info[i].find('meta', attrs={'itemprop': 'availability'})['title'])
-                    link_p = links[i]['href']
+                response2 = rq.get(url_pro, headers=header, proxies=proxy)
+                soup2 = BeautifulSoup(response2.text, 'html.parser')
+               
+                tamanhos = soup2.find_all('input', {'id':'json-detail'})
+                res = json.loads(tamanhos[0]['value'])
 
-                    if d == 'disponível' and link_p not in estoque:
-                        description = 'Produto disponível para compra'
+                for i in range(len(res['Variations'])):
+                    tamanho = res['Variations'][i]['Name']
+                    stock = res['Variations'][i]['Sku']['Stock']
+                    produto_t = link_p+tamanho
+
+                    if stock > 0:
+                        estoque.append(produto_t)
+                        print(produto_t)
+                        print(stock)
+                    else:
+                        esgotados.append(produto_t)
+
+        response = rq.get(url, headers=header, proxies=proxy)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        info = soup.find_all('div', class_='dados')
+        links = soup.find_all('a', class_='ui image fluid attached')
+        imagens = soup.find_all('img', class_='visible content')
+
+        for i in range(len(links)):
+            try:
+                nome = str(info[i].find('h3').getText()).strip()
+                preco = str(info[i].find('span', class_='preco').text).strip()
+                image = imagens[i]['data-src']
+                link_p = links[i]['href']
+                url_pro = url_p+link_p
+
+                response2 = rq.get(url_pro, headers=header, proxies=proxy)
+                soup2 = BeautifulSoup(response2.text, 'html.parser')
+               
+                tamanhos = soup2.find_all('input', {'id':'json-detail'})
+                res = json.loads(tamanhos[0]['value'])
+
+                for i in range(len(res['Variations'])):
+                    tamanho = res['Variations'][i]['Name']
+                    stock = res['Variations'][i]['Sku']['Stock']
+                    produto_t = link_p+tamanho
+
+                    if stock == 0 and produto_t not in esgotados:
+                        esgotados.append(produto_t)
+                        if produto_t in estoque:
+                            estoque.remove(produto_t)
+
+                    elif stock > 0 and produto_t not in estoque and produto_t not in esgotados:
+                        description = 'PRODUTO DISPONÍVEL'
                         estoque.append(link_p)
-                        monitor_post()
+                        monitor_post(green)
 
-                    elif d == 'disponível' and link_p in esgotados:
-                        description = 'PRODUTO DE VOLTA AO ESTOQUE!!!'
+                    elif stock > 0 and produto_t in esgotados and produto_t not in estoque:
+                        description = 'RESTOCK'
                         esgotados.remove(link_p)
                         estoque.append(link_p)
                         monitor_post(red)
 
-                except Exception as e:
-                    print(e)
-        for i in estoque:
-            if i not in urls:
-                estoque.remove(i)
-                esgotados.append(i)
+            except Exception as e:
+                print(e)
         time.sleep(2)
     except Exception as erro:
         print(erro)
-

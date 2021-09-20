@@ -6,6 +6,7 @@ from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -18,11 +19,14 @@ green = '32768'
 estoque = []
 esgotados = []
 
-def index(proxy):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
     url = 'https://www.newskull.com.br/novidades'
     header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 
-    webhook = 'https://discord.com/api/webhooks/875709837235851294/lvdEz17tgUniHiA6Mmg_xJIteA9QiD3hdfa0AZc7rFFDAW-JmszzQ71Y_NWhBgmltAIy'
+    webhook = ''
 
     try:
         urls = []

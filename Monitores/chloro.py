@@ -7,6 +7,7 @@ from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -21,9 +22,12 @@ esgotados = []
 
 header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 
-webhook = 'https://discord.com/api/webhooks/880190499879788554/KWivsk6fdoKjXadUOIgvdk-Ikf59lT-W_mYb0I7oOr_WKQD7KV-GOP3Dzox8CuEbyYmI'
+webhook = ''
 
-def index(proxy):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
     def monitor_post(color):
         data = {
             'username': 'Chloro Monitor',

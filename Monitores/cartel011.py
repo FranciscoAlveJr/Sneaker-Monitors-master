@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -16,7 +17,10 @@ green = '32768'
 estoque = []
 esgotados = []
 
-def index(proxy):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
     def monitor_post(color):
         data = {
             'username': 'Cartel 011 Monitor',
@@ -47,7 +51,7 @@ def index(proxy):
     url = 'https://shop.cartel011.com.br/novidades-cat.html'
     header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 
-    webhook = 'https://discord.com/api/webhooks/875709641915527188/jVNC_ZDOOkBqZ-LRwMBziAVSXWatrDJpyFnwVr9Z0MBXeJIAgpHVc3vLVB0uuglIc36D'
+    webhook = ''
 
     try:
         urls = []

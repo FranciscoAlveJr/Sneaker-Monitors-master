@@ -1,11 +1,16 @@
 from bs4 import BeautifulSoup
 import requests as rq
 import json
-import time
 from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+import get_proxys
+from time import sleep
+
+p = get_proxys.get_proxys()
+proxy = {'http': 'http://{}'.format(p)}
+
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -51,7 +56,7 @@ def index(proxy):
 
     url = 'https://www.artwalk.com.br/novidades?PS=24&O=OrderByReleaseDateDESC'
 
-    webhook = 'https://discord.com/api/webhooks/875539926547066940/0XAUOBf-GAs9QSkKHe00kb3_McmMMKtp19M6YxYHz-Fl52CPOIPan7W6lMsORsoUJo2L'
+    webhook = ''
 
     try:
         source = rq.get(url, headers=header, proxies=proxy)
@@ -135,4 +140,5 @@ def index(proxy):
             print(e)
     except Exception as erro:
         print(erro)
+    sleep(2)
 

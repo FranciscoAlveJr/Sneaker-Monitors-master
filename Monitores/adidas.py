@@ -6,6 +6,7 @@ from datetime import datetime
 import random
 from random_user_agent.params import SoftwareName, HardwareType
 from random_user_agent.user_agent import UserAgent
+from Monitores import get_proxys
 
 software_names = [SoftwareName.CHROME.value]
 hardware_type = [HardwareType.MOBILE__PHONE]
@@ -24,7 +25,10 @@ header = {'User-Agent': user_agent_rotator.get_random_user_agent()}
 esgotados = []
 estoque = []
 
-def index(proxy):
+while True:
+    p = get_proxys.get_proxys()
+    proxy = {'http': 'http://{}'.format(p)}
+
     def monitor_post(color):
         data = {
             'username': 'Adidas Monitor',
@@ -53,7 +57,7 @@ def index(proxy):
             print("Payload delivered successfully, code {}.".format(
                 result.status_code))
 
-    webhook = 'https://discord.com/api/webhooks/857347905051689000/DD3Jinegpu4CGs0UO_L1Gl3lbo_aXI6nYrIabVcToN6-PKjtHhTy-Xr1OFOL7TFHj8t0'
+    webhook = ''
 
     source = rq.get(url, headers=header, proxies=proxy)
     soup = BeautifulSoup(source.text, 'html.parser')
